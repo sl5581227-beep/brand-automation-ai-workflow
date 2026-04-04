@@ -1,8 +1,32 @@
-# 工作流水线文档
+# 工作流水线文档 v2.0
 
 ## 概述
 
-本系统实现从品牌分析到成片产出的全流程自动化，适用于抖音/小红书等短视频平台的内容生产。
+本系统实现从品牌分析到成片产出的**全流程质检自动化**，适用于抖音/小红书/TikTok等短视频平台的内容生产。
+
+---
+
+## 核心改进
+
+1. **产品外观核验**：使用产品手册作为标准，全流程核对产品外观
+2. **跨平台爆款分析**：TikTok/抖音/小红书/快手/X/Instagram/YouTube
+3. **脚本细致化**：基于爆款解读，生成精准镜头提示词
+4. **字幕优化**：适配9:16竖屏，完整显示不截断
+5. **全流程检查体系**：每个关键步骤后都有质检节点
+
+---
+
+## 完整工作流（12步）
+
+```
+1️⃣ 品牌分析 → 2️⃣ 热点搜索 → 3️⃣ 跨平台爆款分析 → 4️⃣ 精准产品图查找
+    ↓
+5️⃣ 产品外观核验（使用手册标准）→ 6️⃣ 脚本生成（细致化）→ 7️⃣ 镜头生成（参考产品图）
+    ↓
+8️⃣ 自动化剪辑 → 8.5️⃣ 去水印+调整比例 → 9️⃣ 字幕优化（适配9:16）
+    ↓
+🔟 字幕配音同步 → 🔟.5️⃣ 字幕核验 → 🔟.75️⃣ 产品外观复核 → 🔟1️⃣ 成片评估 → 🔟2️⃣ 输出报告
+```
 
 ---
 
@@ -25,16 +49,6 @@
   "selling_points": ["0糖0脂肪", "东南亚新鲜椰子", "低卡路里"],
   "recommended_style": "清新自然风"
 }
-```
-
-### 知识库格式
-```
-knowledge_base/
-└── products/
-    └── {product_id}/
-        ├── info.md              # 产品基础信息
-        ├── selling_points.md    # 卖点什么
-        └── materials/          # 原始资料(PDF/视频/图片)
 ```
 
 ---
@@ -60,178 +74,355 @@ knowledge_base/
 
 ---
 
-## Step 3：精准产品图查找 (Product-Image-Searcher)
+## Step 3：跨平台爆款分析 (Trending-Video-Analyzer)
+
+### 输入
+- 产品名称
+- 产品类别
+
+### 过程
+1. **搜索7大平台爆款视频**：
+   - TikTok（#coconutwater #healthydrink）
+   - 抖音（#椰子水 #健康饮品）
+   - 小红书（#椰子水推荐）
+   - 快手（#椰子水）
+   - X/Twitter（#coconutwater）
+   - Instagram（Reels）
+   - YouTube（coconut water review）
+
+2. **提取爆款共同元素**：
+   - 开场hook方式
+   - 痛点引入
+   - 卖点展示
+   - CTA方式
+
+3. **解读爆款脚本结构**：
+   ```json
+   {
+     "opening_hooks": ["产品特写+音效", "痛点提问", "数据展示"],
+     "pain_points": ["运动后脱水", "工作疲劳", "皮肤干燥"],
+     "solutions": ["天然电解质", "0糖配方", "快速补水"],
+     "ctas": ["立即购买", "关注我们", "评论区留言"]
+   }
+   ```
+
+4. **提取优质镜头提示词**：
+   ```
+   爆款中使用的优质AI提示词模板
+   ```
+
+### 输出
+```json
+{
+  "product_category": "健康饮品",
+  "cross_platform_insights": {
+    "most_effective_hooks": ["产品近景特写+清爽音效"],
+    "best_performing_formats": ["15-30秒产品展示"],
+    "recommended_tone": "清新自然健康风"
+  },
+  "script_template": "基于爆款改编的脚本框架",
+  "shot_prompts": ["爆款中使用的优质镜头提示词"]
+}
+```
+
+### 重要性
+- 避免闭门造车，基于已验证的爆款元素创作
+- 学习但不复制，确保原创性
+
+---
+
+## Step 4：精准产品图查找 (Product-Image-Searcher)
 
 ### 输入
 - 产品名称
 
 ### 过程
 1. 搜索天猫/京东/小红书/品牌官网
-2. 返回搜索链接列表
-3. **人工确认**：用户打开链接下载 3-5 张高清产品图
-4. 保存到 `knowledge_base/products/{产品名}/images/`
+2. **人工确认**（必须）：用户打开链接下载3-5张高清产品图
+3. 保存到 `knowledge_base/products/{产品名}/images/`
+
+### ⚠️ 关键：产品手册优先
+如产品手册（PPT/PDF）中有标准产品图片，**必须使用手册图片**作为标准：
+```
+knowledge_base/products/{产品名}/manual/
+├── 官方正面图.png
+├── 官方侧面图.png
+└── 官方包装图.png
+```
 
 ### 输出
 ```json
 {
   "product": "轻上椰子水",
-  "images": [
-    {"type": "front", "path": "knowledge_base/.../front.jpg"},
-    {"type": "side", "path": "knowledge_base/.../side.jpg"}
-  ]
+  "manual_images": ["knowledge_base/.../manual/正面图.png"],
+  "search_images": ["knowledge_base/.../images/"],
+  "confirmed": true  # 用户已确认
 }
 ```
 
-### 重要性
-- **防止产品外观错误**：避免把"生椰"当"椰子水"
-- **提升镜头一致性**：产品图作为Clip-Generator的参考
+---
+
+## Step 5：产品外观核验 (Product-Appearance-Check)
+
+### 输入
+- 产品手册标准图片
+- 产品外观特征清单
+
+### 过程
+1. **读取产品手册标准图**
+   ```json
+   {
+     "product": "轻上椰子水",
+     "key_features": {
+       "bottle_shape": "圆柱形纤细瓶",
+       "color": "透明瓶身+白色标签",
+       "label": "白底绿字",
+       "logo_position": "瓶身中部",
+       "capacity": "245mL"
+     },
+     "forbidden_features": [
+       "椰肉颗粒感（这是生椰，不是椰子水）",
+       "浑浊液体",
+       "粉色包装"
+     ]
+   }
+   ```
+
+2. **人工核验产品图片**
+   - 显示标准产品图
+   - 让用户确认："这些图片是否代表正确的产品外观？"
+
+3. **保存确认结果**
+   - 只有确认后才能进入下一步
+
+### 输出
+```json
+{
+  "product": "轻上椰子水",
+  "appearance_check": "PASS",
+  "confirmed_features": [...],
+  "proceed_to_script": true
+}
+```
 
 ---
 
-## Step 4：脚本生成 (Script-Writer)
+## Step 6：脚本生成 (Script-Writer)
 
 ### 输入
 - 产品核心卖点
 - 热点话题
-- 产品图片路径（可选）
+- 爆款脚本分析结果
+- 产品外观核验通过
 
 ### 过程
-1. 生成15-30秒视频脚本
-2. 划分分镜头时间码
-3. 每个镜头生成AI视频提示词（英文）
 
-### 脚本结构
-| 时间段 | 内容 | 目的 |
-|--------|------|------|
-| 0-3s | 开场吸引 | 抓住注意力 |
-| 3-15s | 展示产品 | 解决痛点 |
-| 15-25s | 使用场景 | 建立关联 |
-| 25-30s | 引导行动 | CTA |
+**基于爆款分析生成细致化脚本：**
 
-### 输出
+1. **开场设计（基于爆款hook分析）**
+2. **痛点引入（与热点关联）**
+3. **产品展示（使用已确认的产品外观）**
+4. **使用场景（爆款中验证有效的场景）**
+5. **CTA（爆款中验证有效的行动号召）**
+
+**脚本细致化要求：**
+- 每个镜头对应具体的一句/半句台词
+- 提示词要精准，包含产品外观细节
+- 时长灵活，根据实际配音调整
+
+### 脚本格式
 ```json
 {
   "product": "轻上椰子水",
-  "topic": "肠道健康",
-  "duration": 22,
-  "voiceover": {
-    "0-3s": "健康饮品新选择...",
-    "3-15s": "甄选东南亚..."
-  },
-  "shots": [
+  "topic": "健康饮水",
+  "duration": 55,
+  "voiceover": [
     {
-      "time": "0-3s",
-      "prompt": "close-up of coconut product, morning light...",
-      "reference_image": "knowledge_base/.../front.jpg"
+      "time": "0.0-2.5",
+      "cn": "夏天必备！",
+      "en": "Summer essential!",
+      "shot_prompt": "近景特写：透明圆柱形瓶身，白底绿字标签，瓶身有水珠，背景清爽海边，晨光，4K高清"
+    },
+    {
+      "time": "2.5-5.0",
+      "cn": "轻上椰子水，清爽解渴又健康！",
+      "en": "Qingshang Coconut Water - refreshing and healthy!",
+      "shot_prompt": "中景：模特手持椰子水，微笑，背景户外阳光，风格清新自然"
     }
-  ]
+  ],
+  "product_reference": "knowledge_base/products/轻上椰子水/manual/正面图.png",
+  "banned_prompts": ["椰肉", "浑浊", "粉色"]
 }
 ```
 
 ---
 
-## Step 5：镜头生成 (Clip-Generator)
+## Step 7：镜头生成 (Clip-Generator)
 
 ### 输入
-- AI视频提示词
-- 参考产品图片（可选）
-- 时长（默认6秒）
+- 细致化脚本（每个镜头含精准提示词）
+- 产品外观参考图
+- 产品特征清单（防错）
 
 ### 过程
-1. **查重**：检查`lens_db.json`，7天内相似提示词直接复用
-2. **生成**：调用MiniMax Hailuo API
-3. **评估**：质量分数<60则重试（最多2次）
-4. **记录**：保存到`generated_clips/`，更新元数据
 
-### 防复用机制
-```json
-// lens_db.json
-{
-  "lenses": [
-    {
-      "id": "md5_hash",
-      "prompt": "close-up of coconut...",
-      "created_at": "2026-04-04",
-      "quality_score": 85,
-      "is_usable": true
-    }
-  ]
-}
-```
+1. **查重**：检查7天内相似提示词
+2. **生成镜头**：
+   - 将产品外观参考图作为重要参考
+   - 确保提示词中包含产品特征
+3. **质量评估**：
+   - 技术质量（清晰度、闪烁）
+   - **产品外观一致性（必须检查）**
+   - 内容匹配度
+
+### ⚠️ 产品外观检查点
+生成每个镜头后，必须确认：
+- [ ] 瓶身形状正确
+- [ ] 颜色正确（透明vs浑浊）
+- [ ] 标签样式正确
+- [ ] 无禁止特征
 
 ### 输出
-```
-✅ 镜头生成成功
-文件：generated_clips/clip_20260404_abc123.mp4
-质量：88/100
+```json
+{
+  "clip_path": "generated_clips/clip_xxx.mp4",
+  "prompt_used": "close-up of coconut water bottle...",
+  "product_check": "PASS",
+  "quality_score": 85
+}
 ```
 
 ---
 
-## Step 6：自动化剪辑 (Video-Editor)
+## Step 8：自动化剪辑 (Video-Editor)
 
 ### 输入
 - 镜头文件列表（按顺序）
 - 背景音乐（可选）
-- 转场效果（默认直接切）
 
 ### 过程
-1. 生成filelist.txt
-2. FFmpeg concat拼接
-3. 混音（叠加背景音乐）
-4. 更新镜头元数据
+1. FFmpeg concat拼接
+2. 混音（叠加背景音乐）
 
 ### 输出
 ```
 ✅ 视频剪辑完成
 成片：final_videos/final_20260404_xyz789.mp4
-时长：22秒 | 分辨率：1080x1920
+时长：55秒 | 分辨率：1080x1920
 ```
 
 ---
 
-## Step 7：字幕配音同步 (Subtitle-Audio-Sync)
+## Step 8.5：去水印+调整比例 (Video-Watermark-Remover)
 
 ### 输入
-- 成片视频路径
-- 配音文件（从视频提取或外部提供）
+- 原始成片
 
 ### 过程
-1. **Whisper转写**：词级时间戳（精确到毫秒）
-2. **生成SRT**：每个字的时间戳
-3. **烧录硬字幕**：FFmpeg或MoviePy
+1. **裁剪去除AI水印**（右下角区域）
+2. **调整为9:16竖屏**（1080x1920）
 
-### 核心技术
-- 使用`faster-whisper`进行词级时间戳转写
-- SRT格式：`HH:MM:SS,mmm`
-- 双方案：FFmpeg（快）+ MoviePy（备）
+### ⚠️ 字幕区域保护
+调整比例时，确保字幕区域：
+- 在视频底部15-20%安全区
+- 不被裁剪或压缩变形
+
+---
+
+## Step 9：字幕优化 (Subtitle-Optimizer)
+
+### 输入
+- 成片视频
+- 脚本原文
+
+### 过程
+
+**9:16竖屏字幕标准：**
+| 参数 | 推荐值 |
+|------|--------|
+| 字体大小 | 视频高度÷22（约87px for 1920p） |
+| 字幕区域 | 底部15%（留出TikTok UI） |
+| 行间距 | 1.3倍 |
+| 描边 | 2-3px黑色 |
+| 中英分行 | 中文在上，英文在下 |
+
+### 字幕安全区域
+```
+┌─────────────────┐
+│                 │
+│    视频内容     │
+│                 │
+│                 │
+├─────────────────┤ ← 安全区起点（85%）
+│  中文字幕行     │
+│  English line   │ ← 字幕区（15%）
+└─────────────────┘
+```
+
+### 输出
+```
+✅ 字幕优化完成
+- 字体大小：44px
+- 位置：底部15%安全区
+- 中英分行：✓
+- 输出：output_optimized.mp4
+```
+
+---
+
+## Step 10：字幕配音同步 (Subtitle-Audio-Sync)
+
+### 输入
+- 优化后的视频
+- 配音文件
+
+### 过程
+1. **Whisper词级时间戳转写**
+2. **生成精确SRT**（毫秒级精度）
+3. **烧录硬字幕**
 
 ### 输出
 ```
 ✅ 字幕同步完成
-带字幕成片：final_videos/final_xxx_subtitled.mp4
-SRT字幕：final_videos/final_xxx.srt
-同步精度：词级
+- 同步精度：词级
+- SRT字幕：xxx.srt
 ```
-
-### 解决的问题
-- 配音朗读速度不同导致字幕提前/延后
-- ASS字幕编码导致的显示错误
 
 ---
 
-## Step 8：成片质量评估 (Final-QC)
+## Step 10.5：字幕核验 (Final-QC)
 
-### 输入
-- 成片视频路径
-- 脚本原文
+### 核验内容
+- [ ] 字幕是否完整显示（未被截断）
+- [ ] 字体大小是否合适可读
+- [ ] 中英文是否正确
+- [ ] 同步是否准确
+
+### 如有问题
+→ 返回 Step 9 重新优化
+
+---
+
+## Step 10.75：产品外观复核 (Product-Appearance-Check)
+
+### 核验内容
+- [ ] 最终成片中产品外观是否与手册一致
+- [ ] 是否有错误的禁止特征出现
+
+### 如有问题
+→ 标记警告，可能需要重新生成相关镜头
+
+---
+
+## Step 11：成片质量评估 (Final-QC)
 
 ### 评估维度
 | 维度 | 说明 |
 |------|------|
 | 技术质量 | 清晰度、闪烁、音频质量 |
 | 流畅度 | 镜头切换、节奏 |
-| 一致性 | 产品外观、口播一致 |
+| 字幕质量 | 完整、可读、同步 |
+| **产品一致性** | **产品外观与要求一致** |
 | 吸引力 | 开场、结尾、CTA效果 |
 
 ### 输出
@@ -241,18 +432,30 @@ SRT字幕：final_videos/final_xxx.srt
 ╠═══════════════════════════════╣
 ║ 综合得分：82/100 (A)            ║
 ║ 技术质量：85 | 流畅度：78        ║
-║ 一致性：85 | 吸引力：80          ║
+║ 字幕质量：90 | 产品一致性：FAIL ⚠️ ║
+║ 吸引力：80                      ║
 ╚═══════════════════════════════╝
 ```
 
 ---
 
-## Step 9：输出报告
+## Step 12：输出报告
 
-自动生成完整生产报告，包含：
-- 成品信息
-- 质量评估
+### 成品保存位置
+```
+C:\Users\Administrator\Desktop\qingShangVideos\final_videos\
+├── 轻上椰子水_健康饮品_55s_final.mp4  ← 最终成品
+├── 轻上椰子水_健康饮品_55s_srt.srt    ← 字幕文件
+└── metadata/
+    └── 20260404_production_report.json ← 完整报告
+```
+
+### 报告内容
+- 成品信息（路径、时长、分辨率）
+- 质量评估结果
 - 使用素材清单
+- 产品外观核验记录
+- 字幕同步报告
 - 追踪码（MD5）
 
 ---
@@ -261,70 +464,53 @@ SRT字幕：final_videos/final_xxx.srt
 
 | 步骤 | 失败原因 | 处理方式 |
 |------|----------|----------|
-| 产品图查找 | 搜索无结果 | 提示用户手动提供图片 |
-| 镜头生成 | API超时/配额用尽 | 中止，通知用户 |
-| 镜头质量 | 3次重试均不合格 | 中止，通知用户 |
-| 视频剪辑 | FFmpeg错误 | 中止，通知用户 |
-| 字幕同步 | Whisper失败 | 跳过同步，保留原字幕 |
+| 产品外观核验 | 用户未确认产品图 | 阻塞，等待确认 |
+| 镜头生成 | 产品外观不一致 | 重新生成，传递正确参考 |
+| 字幕优化 | 字体超出边界 | 自动调整参数重新生成 |
+| 字幕核验 | 字幕被截断/看不清 | 返回Step 9优化 |
+| 产品外观复核 | 最终成品与标准不符 | 标记警告，人工决策 |
 | 成片评估 | API不可用 | 跳过评估，标记pending |
 
 ---
 
-## 数据流向
+## 全流程质检节点
 
 ```
-knowledge_base/          # 原始品牌资料
-       ↓
-vector_db/               # ChromaDB向量库
-       ↓
-[Brand-Analyzer] → [Trend-Searcher] → [Product-Image-Searcher]
-                                            ↓
-[Clip-Generator] ← [Script-Writer] ←────────┘
-       ↓
-generated_clips/         # AI生成的镜头
-       ↓
-[Video-Editor] → final_videos/ → [Subtitle-Audio-Sync] → final_videos/
-                                                ↓
-                                         [Final-QC]
-                                                ↓
-                                         生产报告
+[1] 产品手册确认 ────→ [2] 产品外观核验 ────→ [3] 镜头生成 ────→ [4] 剪辑 ────→ [5] 字幕优化 ────→ [6] 最终复核 ────→ [7] 成片
+   ↓                       ↓                      ↓                     ↓                      ↓                      ↓
+  人工确认              特征清单验证           产品外观检查          比例调整验证          字幕可读性验证         产品外观复核
 ```
 
 ---
 
 ## 元数据追踪
 
-### lens_db.json（镜头库）
+### lens_db.json（镜头库，含产品外观标记）
 ```json
 {
   "lenses": [
     {
       "id": "md5_hash",
       "prompt": "...",
-      "created_at": "ISO时间",
-      "file_path": "generated_clips/clip_xxx.mp4",
-      "quality_score": 85,
-      "is_usable": true,
-      "used_in_final": false,
-      "final_video_id": null
+      "product_check": "PASS",
+      "appearance_features": {
+        "bottle_shape": "圆柱形",
+        "color": "透明"
+      }
     }
   ]
 }
 ```
 
-### final_db.json（成片库）
+### final_db.json（成片库，含完整核验记录）
 ```json
 {
   "finals": [
     {
       "id": "md5_hash",
-      "created_at": "ISO时间",
-      "file_path": "final_videos/final_xxx.mp4",
-      "duration": 22,
-      "lens_ids": ["lens_1", "lens_2"],
-      "script_path": "metadata/scripts/xxx.json",
-      "quality_score": 82,
-      "status": "completed"
+      "product_appearance_check": "PASS",
+      "subtitle_check": "PASS",
+      "quality_score": 82
     }
   ]
 }
