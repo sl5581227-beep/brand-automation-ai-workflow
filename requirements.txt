@@ -1,4 +1,4 @@
-# 品牌自动化AI提示剪辑流程 - 依赖清单
+# 品牌自动化AI提示剪辑流程 v3.0 - 依赖清单
 
 # 向量数据库
 chromadb>=0.4.0
@@ -13,6 +13,10 @@ opencv-python>=4.8.0
 
 # 字幕同步
 faster-whisper>=0.9.0
+
+# OCR检查字幕
+paddleocr>=2.7.0
+paddlepaddle>=2.5.0  # PaddlePaddle GPU版本
 
 # 图像处理
 Pillow>=10.0.0
