@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+
+# 视频/音频
+*.mp4
+*.mp3
+*.wav
+*.avi
+*.mov
+
+# 生成的数据库
+vector_db/
+*.db
+*.sqlite
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+
+# 图像缓存
+*.jpg
+*.png
+!knowledge_base/**/*.jpg
+!knowledge_base/**/*.png
+
+# 日志
+logs/*.log
+
+# IDE
+.vscode/
+.idea/
+
+# 系统
+.DS_Store
+Thumbs.db
