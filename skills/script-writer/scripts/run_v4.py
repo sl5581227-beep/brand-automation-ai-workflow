@@ -21,6 +21,21 @@ import tempfile
 from pathlib import Path
 from datetime import datetime
 import time
+import subprocess
+
+# ============ Workspace Initializer ============
+def check_and_init_workspace():
+    """检查并初始化工作区"""
+    init_script = Path(__file__).parent.parent.parent / "skills" / "workspace-initializer" / "scripts" / "init_workspace.py"
+    init_marker = Path.home() / ".openclaw" / "init_done"
+    
+    if not init_marker.exists() and init_script.exists():
+        print("\n[Workspace-Initializer] First-time setup detected, initializing...")
+        try:
+            subprocess.run([sys.executable, str(init_script)], check=False)
+        except:
+            print("[Workspace-Initializer] Init script failed, continuing anyway...")
+    return True
 
 # UTF-8 support
 if sys.platform == 'win32':
@@ -339,6 +354,8 @@ def run_task_file(task_file):
 
 def main():
     """命令行入口"""
+    # 检查并初始化工作区
+    check_and_init_workspace()
     # 解析参数
     task_file = None
     product_id = "qingshang_coconut_water"
